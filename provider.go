@@ -15,9 +15,13 @@ import (
 )
 
 func newProvider(cloudProviderName, cloudConfigPath string) (cloudprovider.PVLabeler, error) {
-	cloudConfig, err := os.ReadFile(cloudConfigPath)
-	if err != nil {
-		return nil, fmt.Errorf("error reading cloud config file %s: %v", cloudConfigPath, err)
+	var err error
+	var cloudConfig []byte
+	if cloudConfigPath != "" {
+		cloudConfig, err = os.ReadFile(cloudConfigPath)
+		if err != nil {
+			return nil, fmt.Errorf("error reading cloud config file %s: %v", cloudConfigPath, err)
+		}
 	}
 
 	var cloudConfigReader io.Reader

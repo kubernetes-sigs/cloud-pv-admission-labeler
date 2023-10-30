@@ -7,7 +7,7 @@ import (
 	"io"
 	"net/http"
 
-	jsonpatch "github.com/evanphx/json-patch"
+	"github.com/wI2L/jsondiff"
 
 	admissionv1 "k8s.io/api/admission/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -115,17 +115,12 @@ func (p *pvLabelAdmission) admit(w http.ResponseWriter, r *http.Request) {
 }
 
 func (p *pvLabelAdmission) getPatchBytes(oldPV, newPV *corev1.PersistentVolume) ([]byte, error) {
-	current, err := json.Marshal(oldPV)
+	patch, err := jsondiff.Compare(oldPV, newPV)
 	if err != nil {
 		return nil, err
 	}
 
-	modified, err := json.Marshal(newPV)
-	if err != nil {
-		return nil, err
-	}
-
-	patchBytes, err := jsonpatch.CreateMergePatch(current, modified)
+	patchBytes, err := json.Marshal(patch)
 	if err != nil {
 		return nil, err
 	}
