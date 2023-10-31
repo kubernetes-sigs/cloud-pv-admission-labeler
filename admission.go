@@ -63,14 +63,34 @@ func (p *pvLabelAdmission) admit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	volumeLabels, err := p.getVolumeLabels(pv)
-	if err != nil {
-		w.WriteHeader(http.StatusForbidden)
+	if pv.Spec.GCEPersistentDisk == nil && pv.Spec.AzureDisk == nil &&
+		pv.Spec.AWSElasticBlockStore == nil && pv.Spec.VsphereVolume == nil {
+		resp := &admissionv1.AdmissionReview{
+			TypeMeta: metav1.TypeMeta{
+				Kind:       "AdmissionReview",
+				APIVersion: "admission.k8s.io/v1",
+			},
+			Response: &admissionv1.AdmissionResponse{
+				UID:     admissionReview.Request.UID,
+				Allowed: true,
+			},
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		outBytes, err := json.Marshal(resp)
+		if err != nil {
+			e := fmt.Sprintf("could not marshal admission response: %v", err)
+			http.Error(w, e, http.StatusInternalServerError)
+			return
+		}
+
+		fmt.Fprintf(w, "%s", outBytes)
 		return
 	}
 
-	if len(volumeLabels) == 0 {
-		// write allowed
+	volumeLabels, err := p.getVolumeLabels(pv)
+	if err != nil {
+		w.WriteHeader(http.StatusForbidden)
 		return
 	}
 
@@ -106,7 +126,7 @@ func (p *pvLabelAdmission) admit(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	outBytes, err := json.Marshal(resp)
 	if err != nil {
-		e := fmt.Sprintf("could not parse admission response: %v", err)
+		e := fmt.Sprintf("could not marshal admission response: %v", err)
 		http.Error(w, e, http.StatusInternalServerError)
 		return
 	}
