@@ -11,9 +11,8 @@ COPY go.sum go.sum
 RUN go mod download
 
 # Copy the go source
+COPY admission/ admission/
 COPY main.go main.go
-COPY admission.go admission.go
-COPY provider.go provider.go
 
 # Build
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -a -o cloud-pv-admission-labeler .
