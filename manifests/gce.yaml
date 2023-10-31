@@ -69,7 +69,7 @@ spec:
     spec:
       containers:
       - name: cloud-pv-admission-labeler
-        image: gcr.io/k8s-staging-cloud-pv-labeler/cloud-pv-admission-labeler:v0.1.0
+        image: gcr.io/k8s-staging-cloud-pv-labeler/cloud-pv-admission-labeler:v0.2.0
         ports:
         - containerPort: 9001
         command:
