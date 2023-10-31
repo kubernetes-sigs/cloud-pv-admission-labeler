@@ -78,7 +78,7 @@ spec:
         - --addr=:9001
         - --tls-cert-path=/etc/kubernetes/certs/server.crt
         - --tls-key-path=/etc/kubernetes/certs/server.key
-        - --cloud-provider=gce
+        - --cloud-provider=vsphere
         volumeMounts:
         - name: certs
           mountPath: /etc/kubernetes/certs
