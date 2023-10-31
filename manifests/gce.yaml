@@ -3,6 +3,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: cloud-pv-admission-labeler-certs
+  namespace: kube-system
 data:
   server.crt: __SERVER_CERT__
   server.key: __SERVER_KEY__
@@ -68,18 +69,16 @@ spec:
     spec:
       containers:
       - name: cloud-pv-admission-labeler
-        image: gcr.io/k8s-staging-cloud-pv-labeler/cloud-pv-admission-labeler:v0.0.9
+        image: gcr.io/k8s-staging-cloud-pv-labeler/cloud-pv-admission-labeler:v0.0.11
         ports:
         - containerPort: 9001
         command:
         - "/cloud-pv-admission-labeler"
         args:
-        - /cloud-pv-admission-labeler                                                                                                                                                                                                                                                         
-        - --addr=localhost:9001                                                                                                                                                                                                                                                               
+        - --addr=:9001
         - --tls-cert-path=/etc/kubernetes/certs/server.crt                                                                                                                                                                                                              
         - --tls-key-path=/etc/kubernetes/certs/server.key                                                                                                                                                                                                               
         - --cloud-provider=gce                                                                                                                                                                                                                                                                
-        # - --cloud-config=/etc/gce.conf
         volumeMounts:
         - name: certs
           mountPath: /etc/kubernetes/certs
