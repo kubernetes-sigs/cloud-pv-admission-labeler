@@ -1,4 +1,4 @@
-package main
+package admission
 
 import (
 	"context"
@@ -21,14 +21,22 @@ import (
 	"k8s.io/klog/v2"
 )
 
-type pvLabelAdmission struct {
+type PVLabelAdmission struct {
 	scheme *runtime.Scheme
 
 	cloudProvider string
 	pvLabeler     cloudprovider.PVLabeler
 }
 
-func (p *pvLabelAdmission) admit(w http.ResponseWriter, r *http.Request) {
+func NewPVLabelAdmission(cloudProvider string, scheme *runtime.Scheme, pvLabeler cloudprovider.PVLabeler) *PVLabelAdmission {
+	return &PVLabelAdmission{
+		cloudProvider: cloudProvider,
+		scheme:        scheme,
+		pvLabeler:     pvLabeler,
+	}
+}
+
+func (p *PVLabelAdmission) Admit(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	data, err := io.ReadAll(r.Body)
@@ -109,7 +117,6 @@ func (p *pvLabelAdmission) admit(w http.ResponseWriter, r *http.Request) {
 	}
 
 	patchType := admissionv1.PatchTypeJSONPatch
-
 	resp := &admissionv1.AdmissionReview{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "AdmissionReview",
@@ -134,7 +141,7 @@ func (p *pvLabelAdmission) admit(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "%s", outBytes)
 }
 
-func (p *pvLabelAdmission) getPatchBytes(oldPV, newPV *corev1.PersistentVolume) ([]byte, error) {
+func (p *PVLabelAdmission) getPatchBytes(oldPV, newPV *corev1.PersistentVolume) ([]byte, error) {
 	patch, err := jsondiff.Compare(oldPV, newPV)
 	if err != nil {
 		return nil, err
@@ -148,7 +155,7 @@ func (p *pvLabelAdmission) getPatchBytes(oldPV, newPV *corev1.PersistentVolume) 
 	return patchBytes, err
 }
 
-func (p *pvLabelAdmission) mutatePV(pv *corev1.PersistentVolume, volumeLabels map[string]string) error {
+func (p *PVLabelAdmission) mutatePV(pv *corev1.PersistentVolume, volumeLabels map[string]string) error {
 	requirements := make([]corev1.NodeSelectorRequirement, 0)
 
 	if pv.Labels == nil {
@@ -200,7 +207,7 @@ func (p *pvLabelAdmission) mutatePV(pv *corev1.PersistentVolume, volumeLabels ma
 	return nil
 }
 
-func (p *pvLabelAdmission) getVolumeLabels(pv *corev1.PersistentVolume) (map[string]string, error) {
+func (p *PVLabelAdmission) getVolumeLabels(pv *corev1.PersistentVolume) (map[string]string, error) {
 	existingLabels := pv.Labels
 
 	// All cloud providers set only these two labels.
