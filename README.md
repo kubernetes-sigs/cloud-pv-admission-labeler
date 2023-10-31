@@ -1,10 +1,11 @@
 # cloud-pv-admission-labeler
 
-External admission webhook to label PVs created by cloud providers
+Admission webhook to add topology labels (zones/regions) to PersistentVolumes from cloud providers.
+This replaces the deprecated `PersistentVolumeLabel` admission controller in kube-apiserver.
 
 ## Setup
 
-The steps below use the GCE based manifest in `manifest/gce.yaml`. Use manifest for other cloud providers based on your cloud provider (e.g. manifest/aws.yaml, manifest.azure.yaml, etc).
+The steps below use the GCE based installation in `manifest/gce.yaml`. Use manifest for other cloud providers based on your cloud provider (e.g. `manifest/aws.yaml`, `manifest.azure.yaml`, etc).
 
 ### Generate certificates
 
